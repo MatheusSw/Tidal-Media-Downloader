@@ -8,10 +8,14 @@ namespace Tidal
 {
     public enum eSoundQuality
     {
-        LOW,
+        LOW = 0,
         HIGH,
         LOSSLESS,
         HI_RES,
+        //NORMAL,
+        //HIGH,
+        //HiFi,
+        //MASTER
     }
 
     public enum eObjectType

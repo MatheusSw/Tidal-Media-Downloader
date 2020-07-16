@@ -101,10 +101,12 @@
                     </materialDesign:Snackbar>
                     <StackPanel  HorizontalAlignment="Left" Height="35" Margin="0,635,0,0" VerticalAlignment="Bottom" Width="1020" Orientation="Horizontal" >
                         <materialDesign:PackIcon Kind="Music" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="10,0,10,0" />
-                        <ComboBox ItemsSource="{Binding QualityList}"
+                        <ComboBox materialDesign:HintAssist.Hint="Sound Quality"
+                                  ItemsSource="{Binding QualityList}"
                                   SelectedIndex="{Binding SelectQualityIndex , UpdateSourceTrigger=PropertyChanged}"
                                   SelectionChanged="{s:Action QualityChanged}"
-                                  VerticalAlignment="Top" Height="30" Padding="6,6,0,6" Width="100"/>
+                                  VerticalAlignment="Top" Height="30" Padding="6,6,0,6" Width="100"
+                                  />
                         <materialDesign:PackIcon Kind="VideoFilm" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="10,0,10,0" />
                         <ComboBox ItemsSource="{Binding ResolutionList}"
                                   SelectedIndex="{Binding SelectResolutionIndex , UpdateSourceTrigger=PropertyChanged}"

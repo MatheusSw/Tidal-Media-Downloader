@@ -41,7 +41,7 @@ namespace TIDALDL_UI.Else
         public bool ArtistBeforeTitle { get; set; }
         public bool AddExplict { get; set; }
         public int AddYear { get; set; }
-        
+
         ///// <summary>
         ///// Progress 
         ///// </summary>
@@ -53,20 +53,20 @@ namespace TIDALDL_UI.Else
             TidalAlbum = album;
             TidalVideo = video;
             TidalTrack = track;
-            Quality    = TidalTool.getQuality(Config.Quality());
+            Quality = TidalTool.getQuality(Config.Quality());
             Resolution = TidalTool.getResolution(Config.Resolution());
-            OutputDir  = Config.OutputDir();
-            Index      = index;
-            Progress   = new ProgressHelper();
-            OnlyM4a    = Config.OnlyM4a();
-            AddHyphen  = Config.AddHyphen();
+            OutputDir = Config.OutputDir();
+            Index = index;
+            Progress = new ProgressHelper();
+            OnlyM4a = Config.OnlyM4a();
+            AddHyphen = Config.AddHyphen();
             UseTrackNumber = Config.UseTrackNumber();
-            Own        = album == null?null : album.Title;
-            ToChinese  = Config.ToChinese();
+            Own = album == null ? null : album.Title;
+            ToChinese = Config.ToChinese();
             CheckExist = Config.CheckExist();
             ArtistBeforeTitle = Config.ArtistBeforeTitle();
             AddExplict = Config.AddExplicitTag();
-            AddYear    = Config.AddYear();
+            AddYear = Config.AddYear();
             if (TidalTrack != null)
             {
                 Title = track.Title;
@@ -115,7 +115,6 @@ namespace TIDALDL_UI.Else
         }
         #endregion
 
-
         #region DownloadVideo
         public bool ProgressNotify(long lCurSize, long lAllSize)
         {
@@ -133,19 +132,19 @@ namespace TIDALDL_UI.Else
             string[] TidalVideoUrls = TidalTool.getVideoDLUrls(TidalVideo.ID.ToString(), Resolution, out Errlabel);
             if (Errlabel.IsNotBlank())
                 goto ERR_RETURN;
-            string TsFilePath = TidalTool.getVideoPath(OutputDir, TidalVideo, TidalAlbum, ".ts", hyphen: AddHyphen, plist: TidalPlaylist, artistBeforeTitle:ArtistBeforeTitle, addYear:AddYear);
+            string TsFilePath = TidalTool.getVideoPath(OutputDir, TidalVideo, TidalAlbum, ".ts", hyphen: AddHyphen, plist: TidalPlaylist, artistBeforeTitle: ArtistBeforeTitle, addYear: AddYear);
 
             //Download
             Progress.StatusMsg = "Start...";
-            if(!(bool)M3u8Helper.Download(TidalVideoUrls, TsFilePath, ProgressNotify, Proxy:TidalTool.PROXY))
+            if (!(bool)M3u8Helper.Download(TidalVideoUrls, TsFilePath, ProgressNotify, Proxy: TidalTool.PROXY))
             {
                 Errlabel = "Download failed!";
                 goto ERR_RETURN;
             }
-            
+
             //Convert
-            FilePath = TidalTool.getVideoPath(OutputDir, TidalVideo, TidalAlbum, hyphen:AddHyphen, plist:TidalPlaylist, artistBeforeTitle: ArtistBeforeTitle, addYear: AddYear);
-            if(!FFmpegHelper.IsExist())
+            FilePath = TidalTool.getVideoPath(OutputDir, TidalVideo, TidalAlbum, hyphen: AddHyphen, plist: TidalPlaylist, artistBeforeTitle: ArtistBeforeTitle, addYear: AddYear);
+            if (!FFmpegHelper.IsExist())
             {
                 Errlabel = "FFmpeg is not exist!";
                 goto ERR_RETURN;
@@ -179,6 +178,14 @@ namespace TIDALDL_UI.Else
         #endregion
 
         #region DownloadTrack
+
+        //Not the best name
+        public bool needsConversionCodec(string codec)
+        {
+            //mp4a.40.2 (Low-complexity AAC) doesn't fall here because it needs to be converted anyway to m4a
+            return codec == "ac4" || codec == "mha1" || codec == "flac";
+        }
+
         public void DownloadTrack()
         {
             string Errlabel = "";
@@ -193,9 +200,8 @@ namespace TIDALDL_UI.Else
 
             //Get path 
             FilePath = TidalTool.getTrackPath(OutputDir, TidalAlbum, TidalTrack, TidalStream.Url,
-                AddHyphen, TidalPlaylist, artistBeforeTitle: ArtistBeforeTitle, addexplicit: AddExplict, 
+                AddHyphen, TidalPlaylist, artistBeforeTitle: ArtistBeforeTitle, addexplicit: AddExplict,
                 addYear: AddYear, useTrackNumber: UseTrackNumber);
-
 
             //Check if song is downloaded already
             string CheckName = OnlyM4a ? FilePath.Replace(".mp4", ".m4a") : FilePath;
@@ -217,8 +223,8 @@ namespace TIDALDL_UI.Else
                 string chnname = Chinese.convertSongTitle(TidalTrack.Title, cloalbum);
                 if (chnname != TidalTrack.Title)
                 {
-                    FilePath = TidalTool.getTrackPath(OutputDir, TidalPlaylist != null ? null : TidalAlbum, TidalTrack, TidalStream.Url, 
-                        AddHyphen, TidalPlaylist, chnname, artistBeforeTitle: ArtistBeforeTitle, addexplicit: AddExplict, 
+                    FilePath = TidalTool.getTrackPath(OutputDir, TidalPlaylist != null ? null : TidalAlbum, TidalTrack, TidalStream.Url,
+                        AddHyphen, TidalPlaylist, chnname, artistBeforeTitle: ArtistBeforeTitle, addexplicit: AddExplict,
                         addYear: AddYear, useTrackNumber: UseTrackNumber);
                     TidalTrack.Title = chnname;
                 }
@@ -228,7 +234,7 @@ namespace TIDALDL_UI.Else
             Progress.StatusMsg = "Start...";
             for (int i = 0; i < 100 && Progress.GetStatus() != ProgressHelper.STATUS.CANCLE; i++)
             {
-                if ((bool)DownloadFileHepler.Start(TidalStream.Url, FilePath, Timeout: 5 * 1000, UpdateFunc: UpdateDownloadNotify, ErrFunc: ErrDownloadNotify, Proxy:TidalTool.PROXY))
+                if ((bool)DownloadFileHepler.Start(TidalStream.Url, FilePath, Timeout: 5 * 1000, UpdateFunc: UpdateDownloadNotify, ErrFunc: ErrDownloadNotify, Proxy: TidalTool.PROXY))
                 {
                     //Decrypt
                     if (!TidalTool.DecryptTrackFile(TidalStream, FilePath))
@@ -237,24 +243,23 @@ namespace TIDALDL_UI.Else
                         goto ERR_RETURN;
                     }
 
-                    if(OnlyM4a)
+                    if (OnlyM4a && !needsConversionCodec(TidalStream.Codec))
                     {
-                        if(TidalStream.Codec != "ac4" && TidalStream.Codec != "mha1")
+                        string sNewName;
+                        //Need to change this IsExist to a better way of checking if you have ffmpeg installed instead of creating a new cmd process and issuing "ffmpeg"
+                        //Maybe search a default folder and if the executable isn't there then ask the user to browser for it
+                        if (!FFmpegHelper.IsExist())
                         {
-                            string sNewName;
-                            if (!FFmpegHelper.IsExist())
-                            {
-                                Errlabel = "Convert mp4 to m4a failed!(FFmpeg is not exist!)";
-                                goto ERR_RETURN;
-                            }
-                            if (!TidalTool.ConvertMp4ToM4a(FilePath, out sNewName))
-                            {
-                                Errlabel = "Convert mp4 to m4a failed!(No reason, Please feedback!)";
-                                goto ERR_RETURN;
-                            }
-                            else
-                                FilePath = sNewName;
+                            Errlabel = "Convert mp4 to m4a failed!(FFmpeg is not exist!)";
+                            goto ERR_RETURN;
                         }
+                        if (!TidalTool.ConvertMp4ToM4a(FilePath, out sNewName))
+                        {
+                            Errlabel = "Convert mp4 to m4a failed!(No reason, Please feedback!)";
+                            goto ERR_RETURN;
+                        }
+                        else
+                            FilePath = sNewName;
                     }
 
                     //SetMetaData 

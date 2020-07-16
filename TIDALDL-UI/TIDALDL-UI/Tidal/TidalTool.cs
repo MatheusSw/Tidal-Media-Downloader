@@ -400,28 +400,28 @@ namespace Tidal
         #region Track
         public static Track getTrack(string ID, out string Errmsg)
         {
-            Track oObj = get<Track>("tracks/" + ID, out Errmsg);
-            if (oObj == null)
+            Track track = get<Track>($"tracks/{ID}", out Errmsg);
+            if (track is null)
                 return null;
-            if (oObj.Version.IsNotBlank())
-                oObj.Title = oObj.Title + " - " + oObj.Version;
-            return oObj;
+            if (track.Version.IsNotBlank())
+                track.Title = $"{track.Title}-{track.Version}";
+            return track;
         }
 
         public static StreamUrl getStreamUrl2(string ID, eSoundQuality eQuality, out string Errmsg)
         {
             string sQua = AIGS.Common.Convert.ConverEnumToString((int)eQuality, typeof(eSoundQuality), 0);
-            StreamUrl oObj = get<StreamUrl>("tracks/" + ID + "/streamUrl", out Errmsg, new Dictionary<string, string>() { { "soundQuality", sQua } }, 3);
+            StreamUrl oObj = get<StreamUrl>($"tracks/{ID}/streamUrl", out Errmsg, new Dictionary<string, string>() { { "soundQuality", sQua } }, 3);
             if(oObj == null)
             {
                 string Errmsg2 = null;
-                object resp = get<object>("tracks/" + ID + "/playbackinfopostpaywall", out Errmsg2,  new Dictionary<string, string>() { { "audioquality", sQua }, { "playbackmode", "STREAM" }, { "assetpresentation", "FULL" } }, 3);
+                object resp = get<object>($"tracks/{ID}/playbackinfopostpaywall", out Errmsg2,  new Dictionary<string, string>() { { "audioquality", sQua }, { "playbackmode", "STREAM" }, { "assetpresentation", "FULL" } }, 3);
                 if (resp != null)
                 {
                     string sNewID = JsonHelper.GetValue(resp.ToString(), "trackId");
                     if(sNewID.IsBlank())
                         return oObj;
-                    oObj = get<StreamUrl>("tracks/" + sNewID + "/streamUrl", out Errmsg, new Dictionary<string, string>() { { "soundQuality", sQua } }, 3);
+                    oObj = get<StreamUrl>($"tracks/{sNewID}/streamUrl", out Errmsg, new Dictionary<string, string>() { { "soundQuality", sQua } }, 3);
                 }
             }
             return oObj;
@@ -429,9 +429,12 @@ namespace Tidal
 
         public static StreamUrl getStreamUrl(string ID, eSoundQuality eQuality, out string Errmsg)
         {
+            //Man I don't even want to touch this
+            //Lord help us
+            //It works so how bad can it be amirite
             StreamUrl oObj = null;
-            string sQua = AIGS.Common.Convert.ConverEnumToString((int)eQuality, typeof(eSoundQuality), 0);
-            object resp = get<object>("tracks/" + ID + "/playbackinfopostpaywall", out Errmsg, new Dictionary<string, string>() { { "audioquality", sQua }, { "playbackmode", "STREAM" }, { "assetpresentation", "FULL" } }, 3);
+            string songQuality = eQuality.ToString();
+            object resp = get<object>($"tracks/{ID}/playbackinfopostpaywall", out Errmsg, new Dictionary<string, string>() { { "audioquality", songQuality }, { "playbackmode", "STREAM" }, { "assetpresentation", "FULL" } }, 3);
             if (resp != null && JsonHelper.GetValue(resp.ToString(), "trackId").IsNotBlank())
             {
                 string sManifest = JsonHelper.GetValue(resp.ToString(), "manifest");
@@ -452,8 +455,8 @@ namespace Tidal
 
         public static ObservableCollection<Contributor> getTrackContributors(string ID, out string Errmsg)
         {
-            ObservableCollection<Contributor> aObj = get<ObservableCollection<Contributor>>("tracks/" + ID + "/contributors", out Errmsg, null, 3, "items");
-            return aObj;
+            ObservableCollection<Contributor> contributors = get<ObservableCollection<Contributor>>($"tracks/{ID}/contributors", out Errmsg, null, 3, "items");
+            return contributors;
         }
         #endregion
 
@@ -1211,30 +1214,22 @@ namespace Tidal
         #endregion
 
         #region Common
+        //It'd prob be better for these to be full properties, so we don't have all these different static getters
         public static List<string> getQualityList()
         {
-            Dictionary<int, string> pHash = AIGS.Common.Convert.ConverEnumToDictionary(typeof(eSoundQuality));
-            List<string> pRet = new List<string>();
-            foreach (var item in pHash)
-            {
-                pRet.Add(item.Value);
-            }
-            return pRet;
+            List<string> qualityList = Enum.GetNames(typeof(eSoundQuality)).ToList();
+            return qualityList;
         }
         
         public static List<string> getResolutionList()
         {
-            Dictionary<int, string> pHash = AIGS.Common.Convert.ConverEnumToDictionary(typeof(eResolution));
-            List<string> pRet = new List<string>();
-            foreach (var item in pHash)
-            {
-                pRet.Add(item.Key.ToString());
-            }
-            return pRet;
+            List<string> resolutionList = Enum.GetNames(typeof(eResolution)).ToList();
+            return resolutionList;
         }
 
         public static eSoundQuality getQuality(string sStr)
         {
+            //TODO: Understand what is happening
             Dictionary<int, string> pHash = AIGS.Common.Convert.ConverEnumToDictionary(typeof(eSoundQuality));
             foreach (var item in pHash)
             {
@@ -1246,6 +1241,7 @@ namespace Tidal
 
         public static eResolution getResolution(string sStr)
         {
+            //TODO: Understand what is happening
             Dictionary<int, string> pHash = AIGS.Common.Convert.ConverEnumToDictionary(typeof(eResolution));
             foreach (var item in pHash)
             {

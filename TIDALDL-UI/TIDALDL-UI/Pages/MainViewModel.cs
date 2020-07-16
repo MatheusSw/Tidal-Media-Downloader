@@ -22,7 +22,7 @@ namespace TIDALDL_UI.Pages
     {
         public string Errlabel { get; set; }
         public string SearchStr { get; set; }
-        public bool   InSearch { get; set; }
+        public bool InSearch { get; set; }
 
         public string SearchHelperTip { get; set; } =
             "You can search album\\track\\video\\artist\\playlist! Example:\n\n" +
@@ -44,7 +44,7 @@ namespace TIDALDL_UI.Pages
         public List<string> ResolutionList { get; set; }
         public int SelectResolutionIndex { get; set; }
 
-        private IWindowManager Manager; 
+        private IWindowManager Manager;
         private LoginViewModel VMLogin;
         private SettingViewModel VMSetting;
         private AboutViewModel VMAbout;
@@ -59,22 +59,22 @@ namespace TIDALDL_UI.Pages
                             SearchViewModel search,
                             DllistViewModel dllist)
         {
-            Manager   = manager;
+            Manager = manager;
             VMSetting = setting;
-            VMAbout   = about;
-            VMInfo    = albuminfo;
-            VMSearch  = search;
-            VMDllist  = dllist;
+            VMAbout = about;
+            VMInfo = albuminfo;
+            VMSearch = search;
+            VMDllist = dllist;
             ThreadTool.SetThreadNum(int.Parse(Config.ThreadNum()));
 
             UpdateThread = new Thread(ThreadUpdateFunc);
             UpdateThread.IsBackground = true;
             UpdateThread.Start();
 
+            //Need to change this to match Tidal qualities
+            //Normal, High, HiFi, Master
             QualityList = TidalTool.getQualityList();
             SelectQualityIndex = QualityList.IndexOf(Config.Quality().ToUpper());
-            if (SelectQualityIndex < 0)
-                SelectQualityIndex = 0;
 
             ResolutionList = TidalTool.getResolutionList();
             SelectResolutionIndex = ResolutionList.IndexOf(Config.Resolution().ToUpper());
@@ -130,12 +130,12 @@ namespace TIDALDL_UI.Pages
                 Errlabel = "Search string is empty!";
                 return;
             }
-            
+
             //Search
-            InSearch               = true;
+            InSearch = true;
             eObjectType SearchType = eObjectType.None;
-            object SearchObj       = await Task.Run(() => { return TidalTool.tryGet(SearchStr, out SearchType); });
-            InSearch               = false;
+            object SearchObj = await Task.Run(() => { return TidalTool.tryGet(SearchStr, out SearchType); });
+            InSearch = false;
 
             if (SearchType == eObjectType.None)
             {
@@ -147,7 +147,7 @@ namespace TIDALDL_UI.Pages
                 VMSearch.Load((Tidal.SearchResult)SearchObj);
                 Manager.ShowDialog(VMSearch);
                 SearchType = VMSearch.ResultType;
-                SearchObj  = VMSearch.ResultObject;
+                SearchObj = VMSearch.ResultObject;
                 if (SearchType == eObjectType.None)
                     return;
             }
@@ -240,7 +240,7 @@ namespace TIDALDL_UI.Pages
                 return;
             }
 
-           
+
             //Get github new version
             string sLastVer = GithubHelper.getLastReleaseVersion("yaronzz", "Tidal-Media-Downloader");
             if (VersionHelper.Compare(sSelfVer, sLastVer) >= 0)
